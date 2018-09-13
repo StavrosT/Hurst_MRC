@@ -30,7 +30,7 @@ do
 	echo $(readlink -f $dir) >> hurstlinks.txt
 done
 
-cd rootpath
+cd $rootpath
 
 
 #Loop ISubjN times
