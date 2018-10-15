@@ -5,7 +5,7 @@
 #15/10/2018
 
 
-#import libraris
+#import libraries
 import pandas as pd 
 import numpy as np 
 from os.path import join
@@ -58,3 +58,7 @@ for file in filelist:
 		
 		#back to writing output to csv
 		T_tmp_fALFF.to_csv(join(outdir, fullfile))
+
+
+
+
