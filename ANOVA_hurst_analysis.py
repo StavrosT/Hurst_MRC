@@ -13,6 +13,8 @@ from os.path import join #Like matlabs fullfile
 import statsmodels.api as sm #for ANOVA output
 from statsmodels.formula.api import ols #For R like formulas 
 from statsmodels.stats.multitest import fdrcorrection #FDR from statsmodels
+from statsmodels.sandbox.regression.predstd import wls_prediction_std as wls
+import statsmodels
 
 #Paths
 rootpath = "/Users/stavrostrakoshis/Documents/MRC_Hurst"
@@ -27,24 +29,15 @@ pheno_data = pd.read_excel(pheno_file)
 
 ardata = pd.DataFrame(pheno_data) #dataframe
 
-#Subset only males
-#maledata = ardata.loc[ardata['Sex'] == "M"]  
-
 #Subset use subs
-
 pheno_data = ardata.loc[ardata['use_subs'] == 1]
-
-#First col as row names used to be here but it messes up the indexing later!
-#Good thing to remember that order matters
 
 
 #Get subject list to loop over
-
 subjlist = pheno_data['sub_id']
 subjlist = subjlist.values #makes it an array from df
 
 #First col as row names (index in python)
-
 pheno_data = pheno_data.set_index('sub_id')
 
 #Empty frame
@@ -54,7 +47,6 @@ tmp_data = tmp_data.set_index(subjlist)  #names rows
 
 #Make a list from 1 to 180 (instead of 0-179) 
 colnumlist = np.arange(1,colnum+1)
-
 #Make an empty list 
 colnames = []
 
@@ -63,12 +55,9 @@ for g in colnumlist:
  	colnames.append('Parcel_%s' % (g))
 
 #Name empty matrix columns with colnames
-
 tmp_data.columns = colnames
 
-
 #Read in csvs for each subject
-
 for isub in list(subjlist):
 	SubHurst = '%s__Hurst.csv' % (isub)
 	subfname = join(datapath, SubHurst)
@@ -85,7 +74,6 @@ tmp_data.to_csv(tmp_data_path)
 '''''''''
  	
 #Join them into a big frame
-
 frames = [pheno_data, tmp_data]
 extended_pheno_data = pd.concat(frames, axis=1) 
 
@@ -96,8 +84,6 @@ ExtPDMpath = join(phenopath, ExtPDM)
 extended_pheno_data.to_csv(ExtPDMpath) 
 
 #Mean (etc) of stuff
-extended_pheno_data[extended_pheno_data['Diagnosis'] == 'TD']['FIQ'].mean()
-extended_pheno_data[extended_pheno_data['Diagnosis'] == 'TD'][['FIQ', 'VIQ']].mean()
 #Or
 #for general descriptives
 extended_pheno_data.describe()
@@ -105,10 +91,6 @@ extended_pheno_data.describe()
 #Groupby for better implementation
 #cleaner aesthitics 
 #groupby spits/is an object
-
-ASD_TD_pheno_datamales = extended_pheno_data.groupby('Diagnosis')
-ASD_TD_mean = ASD_TD_pheno_datamales.mean()
-ASD_TD_max = ASD_TD_pheno_datamales.max()
 
 
 #CHECKING FOR two way ANOVA assumptions
@@ -353,6 +335,104 @@ plt.show()
 
 #OK
 #Adding covariates
+#We'll do this with multiple linear regression
+#Need to check assumptions!
+
+#
+#we are writting output inb the following
+regre_out = pd.DataFrame(np.zeros(shape=(colnum, 16)))
+regre_out.index = parcel_names
+#as represented my statsmodel!
+regre_colnames = ['Intercept', \
+ 'C(Diagnosis)[T.TD]', \
+ 'C(Sex)[T.M]', \
+ 'C(Diagnosis)[T.TD]:C(Sex)[T.M]', \
+ 'FIQ', \
+ 'C(Diagnosis)[T.TD]:FIQ', \
+ 'C(Sex)[T.M]:FIQ', \
+ 'C(Diagnosis)[T.TD]:C(Sex)[T.M]:FIQ', \
+ 'Age', \
+ 'C(Diagnosis)[T.TD]:Age', \
+ 'C(Sex)[T.M]:Age', \
+ 'C(Diagnosis)[T.TD]:C(Sex)[T.M]:Age', \
+ 'FIQ:Age', \
+ 'C(Diagnosis)[T.TD]:FIQ:Age', \
+ 'C(Sex)[T.M]:FIQ:Age', \
+ 'C(Diagnosis)[T.TD]:C(Sex)[T.M]:FIQ:Age']
+
+regre_out.columns = regre_colnames
+##
+#will use this in the loop later
+range_Rcolnames = np.arange(len(regre_colnames))
+#ITER = np.arange(1, range_Rcolnames+1)
+##
+
+regre_Tstat = regre_out
+regre_Pval = regre_out
+
+regre_Fstats = pd.DataFrame(np.zeros(shape=(colnum, 1)))
+regre_Fstats.index = parcel_names
+regre_Fstats.columns = ['Model Fit: F stat']
+
+#external loop
+for col in colnumlist:
+	print(col)
+	#assumptions
+	if  (Wilk_ASD.loc['Parcel_%s' % col, 'p_value'] > 0.05 and
+		Wilk_TD.loc['Parcel_%s' % col, 'p_value'] > 0.05 and
+		Wilk_M.loc['Parcel_%s' % col, 'p_value'] > 0.05 and
+		Wilk_F.loc['Parcel_%s' % col, 'p_value'] > 0.05):
+
+
+
+		print([col, 'will be used'])
+		#statisticians love this
+		formula = 'Parcel_%s ~ C(Diagnosis) * C(Sex) + FIQ + MeanFD' % col
+		tmp_model = ols(formula, data=extended_pheno_data).fit()
+		
+		
+		#get interesting stuff from output
+		#even though all output is interesting.
+		#it has diagnostic stats like skewness and stuff
+		#by default and as a method tmp_model.diagn !
+		#example: 'tmp_model.fittedvalues' gets Cohens d for every sub!
+
+
+		#T statistic for assesing how good each predictor is in relation to the mean (of that predictor)
+		#p vals to enter into FDR
+
+		tmp_Test = pd.Series(tmp_model.tvalues)  
+		tmp_Pval = pd.Series(tmp_model.pvalues)
+
+
+		newcol = col - 1
+		#F statistic for models fit. 
+		#we can get the R^2 or R^2 adjusted but we did ANOVA before
+		#so for completion is better to get the F test
+
+		tmp_F = tmp_model.fvalue 
+		regre_Fstats.iloc[newcol] = tmp_F #I am not axactly sure why two brackets. because 1-D?
+											# -1 because iloc wants 0-179 indexes!	of course!	of course!
+		#internal loop
+		#loops over the 16 T and p values of model
+		#see regre_colnames for comparisons
+		for modelcol in range_Rcolnames:
+			regre_Tstat.iloc[newcol, modelcol] = tmp_Test[modelcol] #its a vector onnly one index needed
+			regre_Pval.iloc[newcol, modelcol] = tmp_Pval[modelcol]
+			
+	else:
+		print([col, 'will NOT be used!'])
+		elsenewcol = col - 1
+		regre_Fstats.iloc[elsenewcol, :] = np.nan
+		regre_Tstat.iloc[elsenewcol, :] = np.nan
+		regre_Pval.iloc[elsenewcol, :] = np.nan
+
+#loops and statements end!
+
+#write output
+
+
+
 
 
 
