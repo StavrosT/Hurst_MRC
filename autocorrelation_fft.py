@@ -7,7 +7,7 @@ This script adds the positive values of an Autocorrelation Function(ACF) of a ti
 before the first dive below zero as in Watanabe, T., Rees, G., & Masuda, N. (2019).
  Atypical intrinsic neural timescale in autism. eLife, 8, e42256.
 
-The autocorrelation function is calculated based on the Furrier Fast Transform (FFT)
+The autocorrelation function is calculated based on the  Fast Furrier Transform (FFT)
  and when the signal is not periodic there is the option to use FFT with zero-padding
 e.g. in speech signal (DOI: 10.1109/89.952490).
 
