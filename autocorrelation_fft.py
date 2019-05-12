@@ -3,6 +3,37 @@
 
 
 '''
+This script adds the positive values of an Autocorrelation Function(ACF) of a time-series
+before the first dive below zero as in Watanabe, T., Rees, G., & Masuda, N. (2019).
+ Atypical intrinsic neural timescale in autism. eLife, 8, e42256.
+
+The autocorrelation function is calculated based on the Furrier Fast Transform (FFT)
+ and when the signal is not periodic there is the option to use FFT with zero-padding
+e.g. in speech signal (DOI: 10.1109/89.952490).
+
+
+Everything is store in a newly made Intrinsic_Time_Scale directory.
+
+
+
+Arguments:
+-i :Input e.g. *.csv Input is a dataframe with timepoints as rows and regions as columns
+
+-t :The distance between time points e.g. the TR should be entered after the 
+
+-o :Output name e.g. output.csv
+
+-z :If entered do zeropadding
+
+-p :If entered do 2 kinds of figures 
+
+
+Examples 
+
+python3 path/to/autocorrelation_fft.py -i TimeSeries.csv -t 2 -o AFC_.csv
+
+python3 path/to/autocorrelation_fft.py -i TimeSeries.csv -t 0.5 -z -p -o AFC_.csv
+
 
 
 
@@ -41,10 +72,11 @@ def parse_args():
 		help= 'Define output name', \
 		default=None)
 	#zero padding
-	parser.add_option("--zero_padding", \
+	parser.add_option('-z', "--zero_padding", \
 		dest='ZeroPadding', \
 		help='Set this to True if you want zero-padding with the FFT (e.g. if signal is not periodic)', \
-		default=False)
+		default=False,
+		action='store_true')
 	#plots
 	parser.add_option('-p', "--plots", \
 		dest='PLOTS', \
@@ -181,14 +213,16 @@ for region in df:
 			tmp_fig = autocorrelation_plot(tmp_df)
 			plt.title('AFC on all time points without FFT')
 			plt.savefig(os.path.join(dirname,'AFC without FFT on region %s' %(region)))
-
+			plt.clf()
+			plt.close()
 
 			print('**+fig 1 of %s was saved' %(region))
 
 			tmp_fig2 = plot_acf(tmp_df, lags=20, fft=True)
 			plt.title('AFC on all time points with FFT, on 20 lags')
 			plt.savefig(os.path.join(dirname,'AFC with FFT on region %s' %(region)))
-
+			plt.clf()
+			plt.close()
 			print('**+fig 2 of %s was saved' %(region))
 
 
@@ -203,14 +237,16 @@ for region in df:
 			tmp_fig = autocorrelation_plot(tmp_df)
 			plt.title('AFC on all time points without FFT')
 			plt.savefig(os.path.join(dirname,'AFC without FFT on region %s' %(region)))
-
+			plt.clf()
+			plt.close()
 
 			print('**+fig 1 of %s was saved' %(region))
 
 			tmp_fig2 = plot_acf(tmp_df, lags=20, fft=True, zero=True)
 			plt.title('AFC on all time points with FFT on 20 lags including 0 lag')
 			plt.savefig(os.path.join(dirname,'AFC with FFT on region %s' %(region)))
-
+			plt.clf()
+			plt.close()
 			print('**+fig 2 of %s was saved' %(region))
 
 	else:
