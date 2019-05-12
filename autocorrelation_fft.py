@@ -32,7 +32,7 @@ Examples:
 
 python3 path/to/autocorrelation_fft.py -i TimeSeries.csv -t 2 -o AFC_.csv
 
-python3 path/to/autocorrelation_fft.py -i TimeSeries.csv -t 0.5 -z -p -o AFC_.csv
+python3 path/to/autocorrelation_fft.py -i TimeSeries.csv -t 0 -z -p -o AFC_.csv
 
 Written by:
 Stavros Trakoshis
