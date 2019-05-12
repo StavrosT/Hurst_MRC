@@ -19,7 +19,7 @@ Everything is store in a newly made Intrinsic_Time_Scale directory.
 Arguments:
 -i :Input e.g. *.csv Input is a dataframe with timepoints as rows and regions as columns
 
--t :The distance between time points e.g. the TR should be entered after the 
+-t :The distance between time points e.g. the TR
 
 -o :Output name e.g. output.csv
 
@@ -28,13 +28,17 @@ Arguments:
 -p :If entered do 2 kinds of figures 
 
 
-Examples 
+Examples:
 
 python3 path/to/autocorrelation_fft.py -i TimeSeries.csv -t 2 -o AFC_.csv
 
 python3 path/to/autocorrelation_fft.py -i TimeSeries.csv -t 0.5 -z -p -o AFC_.csv
 
+Written by:
+Stavros Trakoshis
 
+Last edit:
+12.05.2019
 
 
 
