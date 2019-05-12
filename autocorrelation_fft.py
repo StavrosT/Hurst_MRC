@@ -164,6 +164,14 @@ def intrinsic_ts(tmp_list):
 	OUTPUT = np.round(np.sum(AFC_list) * TR, 4)
 	return OUTPUT
 
+
+#check if TR is int or float
+def num(s):
+    try:
+        return int(s)
+    except ValueError:
+        return float(s)
+
 '''
 Initiate
 '''
@@ -173,7 +181,7 @@ if __name__ == '__main__':
 	# parse arguments
     opts = parse_args()
     TimeSeries_Array = opts.TimeSeries_Array
-    TR = int(opts.TR)
+    TR = num(opts.TR)
     output_fname = opts.output_fname
     ZeroPadding = opts.ZeroPadding
     PLOTS = opts.PLOTS
