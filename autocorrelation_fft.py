@@ -138,7 +138,7 @@ def greater_than_zero(output):
     output = output[1:]
     for i in output:
         
-        if i < 0:
+        if i <= 0:
             
             break
         else:
