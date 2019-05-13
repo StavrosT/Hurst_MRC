@@ -129,13 +129,14 @@ def autocorrelation_z_p(x):
 #get greater than 0
 #first instances before first time AFC goes below zero
 #without first elemnt which euqls to 1 (almost every time)
+#for 20 lags ######
 
 def greater_than_zero(output):
     
     import pandas as pd
     tmp_list = list()
 
-    output = output[1:]
+    output = output[1:21]
     for i in output:
         
         if i <= 0:
